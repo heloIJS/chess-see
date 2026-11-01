@@ -255,6 +255,9 @@
       if (this.flaw && this.flaw.fen === fen) return;
       this.flaw = null;
 
+      // No alternative move means there is nothing for the humanizer to pick.
+      if (this.legalMoveCount(fen) < 2) return;
+
       const blunderChance = Math.max(0, Math.min(100, Number(this.settings.blunderChance) || 0));
       const mistakeChance = Math.max(0, Math.min(100, Number(this.settings.mistakeChance) || 0));
       const missChance = Math.max(0, Math.min(100, Number(this.settings.missChance) || 0));
@@ -302,6 +305,16 @@
       return weight;
     }
 
+    legalMoveCount(fen) {
+      try {
+        const ChessCtor = root.Chess;
+        if (typeof ChessCtor !== 'function') return 0;
+        return new ChessCtor(fen).moves().length;
+      } catch (error) {
+        return 0;
+      }
+    }
+
     randomLegalMove(fen, exclude, style) {
       try {
         const ChessCtor = root.Chess;
@@ -311,7 +324,10 @@
         const pool = exclude
           ? moves.filter((move) => move.from + move.to + (move.promotion || '') !== exclude)
           : moves;
-        if (!pool.length) return null;
+        // A forced move is not a blunder. For the initial pick there must be
+        // at least one alternative; for a replacement, the excluded best move
+        // may legitimately leave only one option.
+        if (!pool.length || (!exclude && pool.length < 2)) return null;
 
         let total = 0;
         const weighted = pool.map((move) => {
@@ -345,9 +361,15 @@
       if (!flaw || !this.position || flaw.fen !== this.position.fen) return lines;
 
       if (flaw.type === 'blunder' && flaw.move) {
-        if (bestMove && flaw.move === bestMove) {
+        // Replace only once. Stage 2 can see the replacement as its own best
+        // move; replacing again would make the shown blunder jump between
+        // the shallow and deep result.
+        if (bestMove && flaw.move === bestMove && !flaw.replaced) {
           const replacement = this.randomLegalMove(flaw.fen, bestMove, this.settings.humanizerStyle);
-          if (replacement) flaw.move = replacement;
+          if (replacement) {
+            flaw.move = replacement;
+            flaw.replaced = true;
+          }
         }
         const matchIndex = lines.findIndex((line) => line.pv && line.pv[0] === flaw.move);
         let line = matchIndex >= 0 ? lines.splice(matchIndex, 1)[0] : CS.UCI.lineFromBestMove(flaw.move);
@@ -421,6 +443,7 @@
 
       sorted = this.applyFlaw(sorted, best ? best.bestmove : null);
       const scoredLine = sorted.find((line) => line && line.score);
+      const flawedLine = sorted.find((line) => line && line.flaw);
 
       const result = {
         lines: sorted,
@@ -431,7 +454,7 @@
         bestMove: best ? best.bestmove : null,
         elo: this.settings.elo,
         humanizer: this.settings.humanizer,
-        flaw: this.flaw ? this.flaw.type : null
+        flaw: flawedLine ? flawedLine.flaw : null
       };
       const draw = () => {
         if (!this.overlay || !this.engine || this.destroyed || request.searchId !== this.searchId) return;

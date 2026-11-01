@@ -100,7 +100,10 @@ You can dial the engine down so its advice feels *human* instead of superhuman:
 | Setting | Meaning |
 |---|---|
 | `Full` | Stockfish runs unbounded (max strength) |
-| `~2800` … `~1200` | Uses Stockfish's built-in `UCI_LimitStrength` / `UCI_Elo` |
+| `~2800` … `~1320` | Uses Stockfish's built-in `UCI_LimitStrength` / `UCI_Elo` |
+
+Stockfish's `UCI_Elo` floor is `1320`. Values below that are clamped by the
+engine, so use the miss / mistake / blunder chances when you want weaker play.
 
 Control it via:
 
@@ -121,8 +124,9 @@ Three optional sliders make the HUD deliberately imperfect while Humanizer mode 
 
 All default to `0%`. The roll happens once per position, so the suggestion
 stays stable across the instant and deep search stages. Blunder is checked
-first, then mistake, then miss. When Humanizer mode is off, all chances are
-ignored and the HUD always shows the best move.
+first, then mistake, then miss. A forced move is never treated as a blunder,
+and a blunder replacement is chosen only once per position. When Humanizer
+mode is off, all chances are ignored and the HUD always shows the best move.
 
 Set them in the options page, the on-board HUD panel, or the popup.
 
