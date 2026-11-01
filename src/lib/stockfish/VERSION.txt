@@ -1,0 +1,27 @@
+Stockfish.js 17.1 — lite single-threaded WebAssembly build
+===========================================================
+
+Engine source
+-------------
+Upstream package : stockfish@17.1.0 (npm)
+Upstream project : https://github.com/nmrugg/stockfish.js
+Upstream file    : src/stockfish-17.1-lite-single-03e3232.js
+Upstream build   : 03e3232 (lite NNUE, single-threaded)
+Downloaded       : 2026-10-30
+Local files      : stockfish.js  (renamed from stockfish-17.1-lite-single-03e3232.js)
+                   stockfish.wasm (renamed from stockfish-17.1-lite-single-03e3232.wasm)
+
+Integrity (SHA-256)
+-------------------
+stockfish.js   1c8265e52fdaef797684b4979b42c5dcfe0350df3e11a87e48e4ec5f86e0ca5c
+stockfish.wasm 7ca31bedd166148931a1cc84dbd8dd9cf001744e9994caf23a3c6ff4988d7086
+
+Build/runtime notes
+-------------------
+- Single-threaded. No SharedArrayBuffer is required or used.
+- The compiled engine declares "Threads ... min 1 max 1". It is permanently
+  single-threaded, so no Threads setoption is sent at runtime (sending a no-op
+  Threads setoption to this Emscripten build stalls it). Hash is set to 64 MB.
+- NNUE data is embedded in the WASM. No network access is performed at runtime.
+- License: GPLv3. See the upstream AUTHORS, Copying.txt, and license files in
+  the stockfish@17.1.0 package. Source is available at the upstream project URL.

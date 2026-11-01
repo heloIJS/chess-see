@@ -1,0 +1,138 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b1220;
+  --card: rgba(17, 24, 39, .92);
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --border: rgba(148,163,184,.22);
+  --green: #22c55e;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(34,197,94,.12), transparent 32%),
+    radial-gradient(circle at 10% 90%, rgba(59,130,246,.10), transparent 30%),
+    var(--bg);
+  color: var(--text);
+  font: 14px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+main {
+  width: min(920px, calc(100vw - 32px));
+  margin: 34px auto 40px;
+  display: grid;
+  gap: 16px;
+}
+
+header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+h1 {
+  margin: 0 0 3px;
+  font-size: 26px;
+  letter-spacing: .01em;
+}
+
+h2 {
+  margin: 0 0 12px;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+header p { margin: 0; color: var(--muted); }
+
+section {
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+section h2 {
+  margin-bottom: 14px;
+}
+
+label {
+  margin: 12px 0;
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 2px;
+}
+
+label:first-of-type {
+  display: flex;
+  margin: 8px;
+}
+
+input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--green);
+}
+
+label > input:first-child + input[type="range"] {
+  width: 100%;
+}
+
+input[type="range"] {
+  grid-column-start: 2;
+}
+
+input[type="range"]:focus-visible,
+input[type="checkbox"]:focus-visible,
+button:focus-visible {
+  outline: 1px solid var(--green);
+  outline-offset: 2px;
+}
+
+[data-out] {
+  width: 50px;
+  text-align: right;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+section label.defaultrow {
+  display: flex;
+  justify-content: flex-start;
+}
+
+button {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(31,41,55,.85);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover { background: rgba(51,65,85,.9); }
+
+footer {
+  padding: 0;
+  color: var(--muted);
+}
+
+kbd {
+  padding: 2px 4px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: rgba(31,41,55,.8);
+}

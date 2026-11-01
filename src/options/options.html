@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chess-See · Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Chess-See settings</h1>
+        <p>Local Stockfish only. No network analysis.</p>
+      </div>
+      <button id="reset" type="button">Reset</button>
+    </header>
+
+    <section>
+      <h2>HUD</h2>
+      <label><input id="enabled" type="checkbox">Master HUD</label>
+      <label><input id="onlyOnMyTurn" type="checkbox">Show / analyze only on my turn</label>
+      <label><input id="analyzeOpponent" type="checkbox">Analyze opponent turn (use with care)</label>
+      <label><input id="showEval" type="checkbox">Evaluation chip</label>
+      <label><input id="subtle" type="checkbox">Subtle mode (single line, low alpha)</label>
+      <label><input id="debugGrid" type="checkbox">Board-offset debug grid</label>
+    </section>
+
+    <section>
+      <h2>Engine & Humanizer</h2>
+      <label><input id="humanizer" type="checkbox">Humanizer mode (mimics human play, blunders & style)</label>
+      <label>Elo rating
+        <input id="elo" type="range" min="800" max="3200" step="50">
+        <span data-out="elo"></span>
+      </label>
+      <label>Miss chance (plays 2nd or 3rd best)
+        <input id="missChance" type="range" min="0" max="100" step="5">
+        <span data-out="missChance"></span>
+      </label>
+      <label>Mistake chance (plays 4th or 5th best)
+        <input id="mistakeChance" type="range" min="0" max="100" step="5">
+        <span data-out="mistakeChance"></span>
+      </label>
+      <label>Blunder chance (plays a random legal move)
+        <input id="blunderChance" type="range" min="0" max="100" step="5">
+        <span data-out="blunderChance"></span>
+      </label>
+      <label>Humanizer style
+        <select id="humanizerStyle">
+          <option value="balanced">Balanced</option>
+          <option value="aggressive">Aggressive (captures, checks)</option>
+          <option value="defensive">Defensive (quiet moves)</option>
+          <option value="tricky">Tricky (checks, promotions)</option>
+        </select>
+      </label>
+      <label>Think delay (before showing a move)
+        <input id="humanizerDelay" type="range" min="0" max="2000" step="100">
+        <span data-out="humanizerDelay"></span>
+      </label>
+      <label>Visible arrows (max 3)
+        <input id="arrowCount" type="range" min="1" max="3" step="1">
+        <span data-out="arrowCount"></span>
+      </label>
+      <label>Depth
+        <input id="depth" type="range" min="6" max="30" step="1">
+        <span data-out="depth"></span>
+      </label>
+    </section>
+
+    <section>
+      <h2>Board alignment</h2>
+      <label>Horizontal offset
+        <input id="offsetX" type="range" min="-20" max="20" step="1">
+        <span data-out="offsetX"></span>
+      </label>
+      <label>Vertical offset
+        <input id="offsetY" type="range" min="-20" max="20" step="1">
+        <span data-out="offsetY"></span>
+      </label>
+    </section>
+
+    <footer>
+      <p>Hotkeys only while playing. Press <kbd>Alt+Shift+S</kbd> for the hidden chess.com panel.</p>
+    </footer>
+  </main>
+
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chess-See</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <h1>Chess-See</h1>
+    <span id="state" class="state">Local</span>
+  </header>
+
+  <label class="switch-row">
+    <span>Master HUD</span>
+    <input id="enabled" type="checkbox">
+  </label>
+
+  <fieldset>
+    <legend>Quick settings</legend>
+    <label><input type="checkbox" id="humanizer"> Humanizer mode</label>
+    <label><input type="checkbox" id="showEval"> Eval chip</label>
+    <label><input type="checkbox" id="subtle"> Subtle mode</label>
+    <label>Elo rating
+      <select id="elo">
+        <option value="800">800 (Beginner)</option>
+        <option value="1000">1000 (Casual)</option>
+        <option value="1200">1200 (Novice)</option>
+        <option value="1500">1500 (Intermediate)</option>
+        <option value="1800">1800 (Club Player)</option>
+        <option value="2000">2000 (Expert)</option>
+        <option value="2200">2200 (Candidate Master)</option>
+        <option value="2500">2500 (Master)</option>
+        <option value="2800">2800 (Grandmaster)</option>
+        <option value="3200">3200 (Max / Stockfish)</option>
+      </select>
+    </label>
+    <label>Miss chance
+      <select id="missChance">
+        <option value="0">0% (never)</option>
+        <option value="5">5%</option>
+        <option value="10">10%</option>
+        <option value="15">15%</option>
+        <option value="20">20%</option>
+        <option value="30">30%</option>
+        <option value="40">40%</option>
+        <option value="50">50%</option>
+      </select>
+    </label>
+    <label>Mistake chance
+      <select id="mistakeChance">
+        <option value="0">0% (never)</option>
+        <option value="5">5%</option>
+        <option value="10">10%</option>
+        <option value="15">15%</option>
+        <option value="20">20%</option>
+        <option value="30">30%</option>
+        <option value="40">40%</option>
+        <option value="50">50%</option>
+      </select>
+    </label>
+    <label>Blunder chance
+      <select id="blunderChance">
+        <option value="0">0% (never)</option>
+        <option value="5">5%</option>
+        <option value="10">10%</option>
+        <option value="15">15%</option>
+        <option value="20">20%</option>
+        <option value="30">30%</option>
+        <option value="40">40%</option>
+        <option value="50">50%</option>
+      </select>
+    </label>
+    <label>Humanizer style
+      <select id="humanizerStyle" data-type="text">
+        <option value="balanced">Balanced</option>
+        <option value="aggressive">Aggressive</option>
+        <option value="defensive">Defensive</option>
+        <option value="tricky">Tricky</option>
+      </select>
+    </label>
+    <label>Think delay
+      <select id="humanizerDelay">
+        <option value="0">0 ms (instant)</option>
+        <option value="300">300 ms</option>
+        <option value="600">600 ms</option>
+        <option value="900">900 ms</option>
+        <option value="1200">1200 ms</option>
+        <option value="1800">1800 ms</option>
+      </select>
+    </label>
+    <label>Arrows (max 3)
+      <select id="arrowCount">
+        <option value="1">1 (Best move)</option>
+        <option value="2">2 (Best + 1 Alt)</option>
+        <option value="3">3 (Best + 2 Alts)</option>
+      </select>
+    </label>
+    <label>Depth
+      <select id="depth">
+        <option value="12">12 · fast</option>
+        <option value="18">18 · balanced</option>
+        <option value="24">24 · deep</option>
+      </select>
+    </label>
+  </fieldset>
+
+  <footer>
+    <div>Hotkeys: A / F / N / D / L / E / S</div>
+    <button id="openOptions" type="button">Open settings</button>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

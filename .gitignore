@@ -1,0 +1,23 @@
+# Local test artifacts
+.tmp_pkg/
+node_modules/
+dist/
+build/
+*.zip
+*.crx
+*.pem
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+
+# Environment files
+.env
+.env.*
