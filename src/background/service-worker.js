@@ -13,6 +13,8 @@ chrome.runtime.onInstalled.addListener((details) => {
     missChance: 0,
     mistakeChance: 0,
     blunderChance: 0,
+    brilliantChance: 0,
+    brilliantTarget: 'auto',
     humanizerStyle: 'balanced',
     humanizerDelay: 0,
     subtle: false,

@@ -14,6 +14,8 @@
     missChance: 0,
     mistakeChance: 0,
     blunderChance: 0,
+    brilliantChance: 0,
+    brilliantTarget: 'auto',
     humanizerStyle: 'balanced',
     humanizerDelay: 0,
     subtle: false,
@@ -24,6 +26,7 @@
 
   const form = {
     enabled: document.getElementById('enabled'),
+    openingBook: document.getElementById('openingBook'),
     humanizer: document.getElementById('humanizer'),
     subtle: document.getElementById('subtle'),
     showEval: document.getElementById('showEval'),
@@ -33,6 +36,8 @@
     missChance: document.getElementById('missChance'),
     mistakeChance: document.getElementById('mistakeChance'),
     blunderChance: document.getElementById('blunderChance'),
+    brilliantChance: document.getElementById('brilliantChance'),
+    brilliantTarget: document.getElementById('brilliantTarget'),
     humanizerStyle: document.getElementById('humanizerStyle'),
     humanizerDelay: document.getElementById('humanizerDelay')
   };
@@ -55,6 +60,11 @@
   function apply(settings) {
     const s = Object.assign({}, DEFAULTS, settings || {});
     form.enabled.checked = !!s.enabled;
+    if (form.openingBook) {
+      chrome.storage.local.get(['openingBookEnabled'], (res) => {
+        form.openingBook.checked = res && res.openingBookEnabled !== false;
+      });
+    }
     if (form.humanizer) form.humanizer.checked = s.humanizer !== false;
     form.subtle.checked = !!s.subtle;
     form.showEval.checked = !!s.showEval;
@@ -64,6 +74,11 @@
     selectClosest(form.missChance, Number(s.missChance) || 0);
     selectClosest(form.mistakeChance, Number(s.mistakeChance) || 0);
     selectClosest(form.blunderChance, Number(s.blunderChance) || 0);
+    selectClosest(form.brilliantChance, Number(s.brilliantChance) || 0);
+    if (form.brilliantTarget) {
+      form.brilliantTarget.value = String(s.brilliantTarget || 'auto');
+      if (!form.brilliantTarget.value) form.brilliantTarget.value = 'auto';
+    }
     selectClosest(form.humanizerDelay, Number(s.humanizerDelay) || 0);
     if (form.humanizerStyle) {
       form.humanizerStyle.value = String(s.humanizerStyle || 'balanced');
@@ -82,7 +97,11 @@
       const value = input.type === 'checkbox'
         ? input.checked
         : (input.tagName === 'SELECT' && isNaN(Number(input.value)) ? input.value : Number(input.value));
-      chrome.storage.sync.set({ [key]: value });
+      if (key === 'openingBook') {
+        chrome.storage.local.set({ openingBookEnabled: value });
+      } else {
+        chrome.storage.sync.set({ [key]: value });
+      }
     });
   });
 

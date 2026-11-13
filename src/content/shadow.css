@@ -150,3 +150,103 @@
 @media (prefers-reduced-motion: reduce) {
   .cs-svg, .cs-eval, .cs-stage, .cs-toast { transition: none; }
 }
+
+/* Brilliant (Brillante) Move styles */
+.cs-eval.cs-brilliant {
+  border: 1px solid rgba(27, 170, 160, 0.8);
+  box-shadow: 0 0 10px rgba(27, 170, 160, 0.35);
+  color: #2dd4bf;
+}
+.cs-ring.cs-brilliant-ring {
+  filter: drop-shadow(0 0 5px rgba(27, 170, 160, 0.85));
+}
+.cs-badge-brilliant {
+  filter: drop-shadow(0 0 4px rgba(27, 170, 160, 0.8));
+}
+.cs-brilliant-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin: 6px 0 10px;
+}
+.cs-brilliant-buttons button {
+  flex: 1 1 50px;
+  font-size: 11px;
+  padding: 4px 6px;
+  text-align: center;
+  border-radius: 6px;
+  transition: all 120ms ease;
+}
+.cs-brilliant-buttons button.cs-btn-active {
+  background: #1baaa0;
+  color: #ffffff;
+  border-color: #147972;
+  font-weight: bold;
+  box-shadow: 0 0 8px rgba(27, 170, 160, 0.4);
+}
+.cs-candidate-moves {
+  margin: 10px 0 8px;
+  padding: 8px;
+  background: rgba(2, 6, 23, 0.5);
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+.cs-candidate-moves[hidden] {
+  display: none;
+}
+.cs-candidates-title {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.cs-candidates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.cs-candidate-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+  padding: 2px 0;
+}
+.cs-candidate-row button {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+.cs-candidate-row button.cs-btn-active {
+  background: #1baaa0;
+  border-color: #147972;
+  font-weight: bold;
+  color: #ffffff;
+}
+.cs-candidate-brilliant {
+  color: #2dd4bf;
+  font-weight: bold;
+}
+
+/* Opening Book styles */
+.cs-eval.cs-book {
+  border: 1px solid rgba(139, 92, 246, 0.8);
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.35);
+  color: #c084fc;
+}
+.cs-ring.cs-book-ring {
+  filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.85));
+}
+.cs-badge-book {
+  filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.8));
+}
+.cs-book-status {
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  font-size: 11px;
+  color: #d8b4fe;
+  margin: 6px 0;
+}

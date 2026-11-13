@@ -19,6 +19,7 @@
 
   <fieldset>
     <legend>Quick settings</legend>
+    <label><input type="checkbox" id="openingBook"> Opening book (repertoire)</label>
     <label><input type="checkbox" id="humanizer"> Humanizer mode</label>
     <label><input type="checkbox" id="showEval"> Eval chip</label>
     <label><input type="checkbox" id="subtle"> Subtle mode</label>
@@ -70,6 +71,29 @@
         <option value="30">30%</option>
         <option value="40">40%</option>
         <option value="50">50%</option>
+      </select>
+    </label>
+    <label>Brilliant chance
+      <select id="brilliantChance">
+        <option value="0">0% (never)</option>
+        <option value="5">5%</option>
+        <option value="10">10%</option>
+        <option value="15">15%</option>
+        <option value="20">20%</option>
+        <option value="30">30%</option>
+        <option value="40">40%</option>
+        <option value="50">50%</option>
+        <option value="75">75%</option>
+        <option value="100">100% (always)</option>
+      </select>
+    </label>
+    <label>Choose brilliant move
+      <select id="brilliantTarget" data-type="text">
+        <option value="auto">Auto (Sacrifice / Best)</option>
+        <option value="best">Best move (#1)</option>
+        <option value="sacrifice">Piece sacrifice</option>
+        <option value="line2">2nd best move (#2)</option>
+        <option value="line3">3rd best move (#3)</option>
       </select>
     </label>
     <label>Humanizer style

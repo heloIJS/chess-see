@@ -13,6 +13,7 @@ const files = [
   'src/content/hotkeys.js',
   'src/content/hud.js',
   'src/content/main.js',
+  'src/content/opening-book.js',
   'src/content/overlay.js',
   'src/engine/offscreen.js',
   'src/engine/uci-parser.js',

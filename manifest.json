@@ -39,6 +39,7 @@
         "src/content/hud.js",
         "src/engine/worker-bridge.js",
         "src/content/hotkeys.js",
+        "src/content/opening-book.js",
         "src/content/main.js"
       ],
       "run_at": "document_idle",

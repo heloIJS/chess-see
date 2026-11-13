@@ -7,6 +7,8 @@
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const FILES = 'abcdefgh';
   const COLORS = ['#22c55e', '#3b82f6', '#f59e0b'];
+  const BRILLIANT_COLOR = '#1baaa0';
+  const BOOK_COLOR = '#8b5cf6';
   const DEFAULTS = {
     enabled: true,
     fadeMode: 'auto',
@@ -20,6 +22,8 @@
     missChance: 0,
     mistakeChance: 0,
     blunderChance: 0,
+    brilliantChance: 0,
+    brilliantTarget: 'auto',
     humanizerStyle: 'balanced',
     humanizerDelay: 0,
     subtle: false,
@@ -186,6 +190,9 @@
       this.lastResult = result;
       this.setEval(result);
       this.refresh();
+      if (this.hud && typeof this.hud.updateLines === 'function') {
+        this.hud.updateLines(result.lines || []);
+      }
       if (!this.geometry) return;
 
       const lines = (result.lines || []).slice(0, this.settings.subtle ? 1 : clamp(this.settings.arrowCount, 1, 3));
@@ -215,17 +222,25 @@
         const from = this.movePoint(move.slice(0, 2));
         const to = this.movePoint(move.slice(2, 4));
         if (!from || !to) continue;
-        const color = COLORS[index] || COLORS[0];
+        const isBook = !!line.book;
+        const isBrilliant = !isBook && !!line.brilliant;
+        const color = isBook ? BOOK_COLOR : (isBrilliant ? BRILLIANT_COLOR : (COLORS[index] || COLORS[0]));
         const width = index === 0 ? 10 : (index === 1 ? 6.5 : 5);
         const alpha = this.settings.subtle ? 0.4 : (index === 0 ? 0.85 : (index === 1 ? 0.72 : 0.6));
-        this.addArrow(group, from, to, color, width, alpha, index > 0, index === 0, index + 1, lines.length > 1);
-        if (index === 0) this.addOrigin(group, from, color);
+        const showBadge = (lines.length > 1) || isBrilliant || isBook;
+        const rankText = isBook ? '📖' : (isBrilliant ? '!!' : String(index + 1));
+        this.addArrow(group, from, to, color, width, alpha, index > 0 && !isBrilliant && !isBook, index === 0 || isBrilliant || isBook, rankText, showBadge, isBrilliant, isBook);
+        if (index === 0 || isBrilliant || isBook) this.addOrigin(group, from, color);
       }
 
       const best = lines[0];
       if (best && best.pv && best.pv[0]) {
         const destination = this.movePoint(best.pv[0].slice(2, 4));
-        if (destination) this.addRing(group, destination, COLORS[0]);
+        if (destination) {
+          const isBook = !!best.book;
+          const ringColor = isBook ? BOOK_COLOR : (best.brilliant ? BRILLIANT_COLOR : COLORS[0]);
+          this.addRing(group, destination, ringColor, best.brilliant, isBook);
+        }
       }
 
       this.stageLayer.appendChild(group);
@@ -242,6 +257,9 @@
 
     clearStage() {
       if (this.stageLayer) this.stageLayer.replaceChildren();
+      if (this.hud && typeof this.hud.updateLines === 'function') {
+        this.hud.updateLines([]);
+      }
     }
 
     refresh(force) {
@@ -315,7 +333,7 @@
       this.defs.appendChild(filter);
     }
 
-    addArrow(group, from, to, color, width, alpha, dashed, glow, rankNumber, showRank) {
+    addArrow(group, from, to, color, width, alpha, dashed, glow, rankNumber, showRank, isBrilliant, isBook) {
       const size = from.size || this.geometry && this.geometry.width / 8 || 60;
       const early = Math.min(size * 0.16, 12);
       const dx = to.x - from.x;
@@ -379,17 +397,20 @@
         circle.setAttribute('fill', color);
         circle.setAttribute('stroke', '#0f172a');
         circle.setAttribute('stroke-width', '1.5');
-        circle.setAttribute('opacity', '0.92');
+        circle.setAttribute('opacity', '0.96');
+        if (isBook) circle.setAttribute('class', 'cs-badge-book');
+        else if (isBrilliant) circle.setAttribute('class', 'cs-badge-brilliant');
         group.appendChild(circle);
 
         const txt = textElement(String(rankNumber));
         txt.setAttribute('x', bx);
-        txt.setAttribute('y', by + 3.5);
+        txt.setAttribute('y', by + (rankNumber === '!!' ? 3.2 : 3.5));
         txt.setAttribute('text-anchor', 'middle');
         txt.setAttribute('fill', '#ffffff');
-        txt.setAttribute('font-size', '10px');
+        txt.setAttribute('font-size', (rankNumber === '!!' || rankNumber === '📖') ? '11px' : '10px');
         txt.setAttribute('font-weight', 'bold');
         txt.setAttribute('font-family', 'ui-monospace, monospace, sans-serif');
+        if (rankNumber === '!!') txt.setAttribute('letter-spacing', '-0.05em');
         txt.setAttribute('pointer-events', 'none');
         group.appendChild(txt);
       }
@@ -404,12 +425,12 @@
       group.insertBefore(rect, group.firstChild);
     }
 
-    addRing(group, point, color) {
+    addRing(group, point, color, isBrilliant, isBook) {
       const ring = element('circle');
       ring.setAttribute('cx', point.x); ring.setAttribute('cy', point.y);
       ring.setAttribute('r', point.size * 0.42); ring.setAttribute('fill', 'none');
-      ring.setAttribute('stroke', color); ring.setAttribute('stroke-width', '2');
-      ring.setAttribute('class', 'cs-ring');
+      ring.setAttribute('stroke', color); ring.setAttribute('stroke-width', (isBrilliant || isBook) ? '2.5' : '2');
+      ring.setAttribute('class', 'cs-ring' + (isBrilliant ? ' cs-brilliant-ring' : '') + (isBook ? ' cs-book-ring' : ''));
       if (this.reducedMotion.matches) ring.classList.add('cs-static-ring');
       group.appendChild(ring);
     }
@@ -428,9 +449,17 @@
       this.chip.hidden = false;
       const eloNum = Number(this.settings.elo);
       const isHuman = (this.settings.humanizer !== false) && eloNum > 0 && eloNum < 3200;
+      const isBook = !!(result && (result.book || (result.lines && result.lines[0] && result.lines[0].book)));
+      const isBrilliant = !isBook && !!(result && (result.brilliant || (result.lines && result.lines[0] && result.lines[0].brilliant)));
+      const brilliantTag = isBrilliant ? ' · !!' : '';
+      const bookTag = isBook ? (' · 📖 ' + (result.openingName || 'Book')) : '';
       const eloTag = isHuman ? ' · ' + eloNum : '';
-      this.chip.textContent = formatted.text + eloTag;
-      this.chip.title = isHuman ? ('Stockfish Humanizer: ' + eloNum + ' Elo') : 'Stockfish (Max strength)';
+      this.chip.textContent = formatted.text + brilliantTag + bookTag + eloTag;
+      this.chip.classList.toggle('cs-brilliant', isBrilliant);
+      this.chip.classList.toggle('cs-book', isBook);
+      this.chip.title = (isBook ? ('Opening Book: ' + (result.openingName || 'Repertoire') + ' · ') : '') +
+                        (isBrilliant ? 'Brilliant move (!!) · ' : '') +
+                        (isHuman ? ('Stockfish Humanizer: ' + eloNum + ' Elo') : 'Stockfish (Max strength)');
       this.chip.classList.remove('cs-positive', 'cs-negative', 'cs-neutral');
       this.chip.classList.add(formatted.className);
       this.positionChip();

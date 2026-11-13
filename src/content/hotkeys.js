@@ -36,7 +36,9 @@
         KeyL: 'cycleElo',
         KeyH: 'toggleHumanizer',
         KeyE: 'toggleEval',
-        KeyS: 'toggleSettings'
+        KeyS: 'toggleSettings',
+        KeyB: 'cycleBrilliant',
+        KeyO: 'toggleOpeningBook'
       };
       const action = actionMap[code];
       if (!action || !this.controller || typeof this.controller[action] !== 'function') return;

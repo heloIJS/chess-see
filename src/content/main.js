@@ -16,6 +16,8 @@
     missChance: 0,
     mistakeChance: 0,
     blunderChance: 0,
+    brilliantChance: 0,
+    brilliantTarget: 'auto',
     humanizerStyle: 'balanced',
     humanizerDelay: 0,
     subtle: false,
@@ -34,6 +36,14 @@
       this.position = null;
       this.currentFen = null;
       this.flaw = null;
+      this.brilliantDecision = null;
+      this.lastRequest = null;
+      this.lastLines = null;
+      this.lastBest = null;
+      this.brilliantDecision = null;
+      this.lastRequest = null;
+      this.lastLines = null;
+      this.lastBest = null;
       this.searchId = 0;
       this.stage2Timer = null;
       this.renderTimer = null;
@@ -52,6 +62,9 @@
       this.settings = Object.assign({}, DEFAULTS, stored || {});
       this.hotkeys = new CS.Hotkeys(this);
       this.hotkeys.start();
+      if (CS.openingBook && typeof CS.openingBook.init === 'function') {
+        CS.openingBook.init().catch(() => {});
+      }
 
       try {
         chrome.storage.onChanged.addListener(this.storageHandler);
@@ -76,8 +89,11 @@
           previous.missChance !== this.settings.missChance ||
           previous.mistakeChance !== this.settings.mistakeChance ||
           previous.blunderChance !== this.settings.blunderChance ||
+          previous.brilliantChance !== this.settings.brilliantChance ||
+          previous.brilliantTarget !== this.settings.brilliantTarget ||
           previous.humanizerStyle !== this.settings.humanizerStyle) {
         this.flaw = null;
+        this.brilliantDecision = null;
       }
       if (this.position && (
         previous.depth !== this.settings.depth ||
@@ -86,6 +102,8 @@
         previous.missChance !== this.settings.missChance ||
         previous.mistakeChance !== this.settings.mistakeChance ||
         previous.blunderChance !== this.settings.blunderChance ||
+        previous.brilliantChance !== this.settings.brilliantChance ||
+        previous.brilliantTarget !== this.settings.brilliantTarget ||
         previous.humanizerStyle !== this.settings.humanizerStyle ||
         previous.arrowCount !== this.settings.arrowCount ||
         previous.fadeMode !== this.settings.fadeMode ||
@@ -108,8 +126,11 @@
           previous.missChance !== this.settings.missChance ||
           previous.mistakeChance !== this.settings.mistakeChance ||
           previous.blunderChance !== this.settings.blunderChance ||
+          previous.brilliantChance !== this.settings.brilliantChance ||
+          previous.brilliantTarget !== this.settings.brilliantTarget ||
           previous.humanizerStyle !== this.settings.humanizerStyle) {
         this.flaw = null;
+        this.brilliantDecision = null;
       }
       if (this.position && (
         previous.depth !== this.settings.depth ||
@@ -118,6 +139,8 @@
         previous.missChance !== this.settings.missChance ||
         previous.mistakeChance !== this.settings.mistakeChance ||
         previous.blunderChance !== this.settings.blunderChance ||
+        previous.brilliantChance !== this.settings.brilliantChance ||
+        previous.brilliantTarget !== this.settings.brilliantTarget ||
         previous.humanizerStyle !== this.settings.humanizerStyle ||
         previous.arrowCount !== this.settings.arrowCount ||
         previous.fadeMode !== this.settings.fadeMode ||
@@ -208,6 +231,10 @@
         this.position = null;
         this.currentFen = null;
         this.flaw = null;
+        this.brilliantDecision = null;
+        this.lastRequest = null;
+        this.lastLines = null;
+        this.lastBest = null;
         this.searchId += 1;
         this.clearStage2Timer();
         this.clearRenderTimer();
@@ -225,12 +252,37 @@
 
       this.currentFen = position.fen;
       this.position = position;
-      this.prepareFlaw(position.fen);
+      this.prepareDecisions(position.fen);
       const id = ++this.searchId;
       this.clearStage2Timer();
       this.clearRenderTimer();
       this.engine.cancel();
       this.overlay.beginPosition(position, visible);
+
+      // Instant book move render
+      const myTurnColor = position.myTurn ? position.turn : null;
+      const initialBookMoves = CS.openingBook ? CS.openingBook.findBookMoves(position.fen, myTurnColor) : [];
+      if (initialBookMoves.length > 0 && visible) {
+        const instantBookLines = initialBookMoves.map((bm, idx) => ({
+          depth: 99,
+          multipv: idx + 1,
+          score: { type: 'cp', value: 0 },
+          pv: [bm.uci],
+          book: true,
+          san: bm.san,
+          openingName: bm.openingName || 'Book Repertoire'
+        }));
+        this.overlay.render({
+          lines: instantBookLines,
+          score: { type: 'cp', value: 0 },
+          turn: position.turn,
+          searchId: id,
+          stage: 1,
+          bestMove: initialBookMoves[0].uci,
+          book: true,
+          openingName: initialBookMoves[0].openingName
+        }, { instant: true });
+      }
 
       if (!this.canAnalyze(position)) {
         this.engine.cancel();
@@ -245,6 +297,172 @@
       const humanizer = this.settings.humanizer !== false;
       const stage1Promise = this.engine.search(position.fen, 6, pvCount, id, 1, elo, humanizer);
       stage1Promise.catch(() => {});
+    }
+
+    prepareDecisions(fen) {
+      this.prepareBrilliant(fen);
+      if (this.brilliantDecision && this.brilliantDecision.active) {
+        this.flaw = null;
+        return;
+      }
+      this.prepareFlaw(fen);
+    }
+
+    prepareBrilliant(fen) {
+      if (this.brilliantDecision && this.brilliantDecision.fen === fen) return;
+      this.brilliantDecision = null;
+
+      const chance = Math.max(0, Math.min(100, Number(this.settings.brilliantChance != null ? this.settings.brilliantChance : this.settings.brillanteChance) || 0));
+      if (chance <= 0) return;
+
+      const roll = Math.random() * 100;
+      if (roll < chance) {
+        this.brilliantDecision = {
+          fen: fen,
+          active: true,
+          target: this.settings.brilliantTarget || this.settings.brillanteTarget || 'auto'
+        };
+      }
+    }
+
+    isSacrifice(fen, uci) {
+      try {
+        if (!fen || !uci || uci.length < 4) return false;
+        const ChessCtor = root.Chess;
+        if (typeof ChessCtor !== 'function') return false;
+        const game = new ChessCtor(fen);
+        const moves = game.moves({ verbose: true });
+        const m = moves.find((move) => move.from + move.to + (move.promotion || '') === uci);
+        if (!m) return false;
+
+        const pieceVals = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+        const movedVal = pieceVals[m.piece] || 0;
+        const capturedVal = m.captured ? (pieceVals[m.captured] || 0) : 0;
+        if (movedVal <= 1) return false;
+
+        game.move(m);
+        const oppMoves = game.moves({ verbose: true });
+        const directCaptures = oppMoves.filter((op) => op.to === m.to);
+
+        if (directCaptures.length > 0) {
+          if (directCaptures.some((op) => (pieceVals[op.piece] || 0) < movedVal)) return true;
+          if (capturedVal < movedVal) {
+            const unrecapturable = directCaptures.some((op) => {
+              game.move(op);
+              const replies = game.moves({ verbose: true });
+              const canRecapture = replies.some((r) => r.to === op.to);
+              game.undo();
+              return !canRecapture;
+            });
+            if (unrecapturable) return true;
+            if (capturedVal > 0 && capturedVal < movedVal) return true;
+          }
+        }
+        return false;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    findLegalSacrifice(fen) {
+      try {
+        const ChessCtor = root.Chess;
+        if (typeof ChessCtor !== 'function') return null;
+        const game = new ChessCtor(fen);
+        const moves = game.moves({ verbose: true });
+        for (let i = 0; i < moves.length; i += 1) {
+          const uci = moves[i].from + moves[i].to + (moves[i].promotion || '');
+          if (this.isSacrifice(fen, uci)) {
+            return uci;
+          }
+        }
+        return null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    applyBrilliant(lines, fen, bestMove) {
+      const decision = this.brilliantDecision;
+      if (!decision || !decision.active || !lines || !lines.length || decision.fen !== fen) {
+        return lines;
+      }
+
+      const target = decision.target || this.settings.brilliantTarget || 'auto';
+
+      if (typeof target === 'string' && target.length >= 4 && /^[a-h][1-8][a-h][1-8]/.test(target)) {
+        const matchIdx = lines.findIndex((l) => l.pv && l.pv[0] === target);
+        let picked = matchIdx >= 0 ? lines.splice(matchIdx, 1)[0] : CS.UCI.lineFromBestMove(target);
+        if (picked) {
+          picked.brilliant = true;
+          lines.unshift(picked);
+          return lines;
+        }
+      }
+
+      if (target === 'sacrifice') {
+        const sacIdx = lines.findIndex((l) => l.pv && l.pv[0] && this.isSacrifice(fen, l.pv[0]));
+        if (sacIdx >= 0) {
+          const picked = lines.splice(sacIdx, 1)[0];
+          picked.brilliant = true;
+          lines.unshift(picked);
+          return lines;
+        }
+        const legalSac = this.findLegalSacrifice(fen);
+        if (legalSac) {
+          const picked = CS.UCI.lineFromBestMove(legalSac);
+          if (picked) {
+            picked.brilliant = true;
+            lines.unshift(picked);
+            return lines;
+          }
+        }
+        if (lines[0]) lines[0].brilliant = true;
+        return lines;
+      }
+
+      if (target === 'line2') {
+        if (lines.length > 1) {
+          const picked = lines.splice(1, 1)[0];
+          picked.brilliant = true;
+          lines.unshift(picked);
+        } else if (lines.length > 0) {
+          lines[0].brilliant = true;
+        }
+        return lines;
+      }
+
+      if (target === 'line3') {
+        if (lines.length > 2) {
+          const picked = lines.splice(2, 1)[0];
+          picked.brilliant = true;
+          lines.unshift(picked);
+        } else if (lines.length > 1) {
+          const picked = lines.splice(1, 1)[0];
+          picked.brilliant = true;
+          lines.unshift(picked);
+        } else if (lines.length > 0) {
+          lines[0].brilliant = true;
+        }
+        return lines;
+      }
+
+      if (target === 'auto') {
+        const sacIdx = lines.findIndex((l, idx) => idx < 3 && l.pv && l.pv[0] && this.isSacrifice(fen, l.pv[0]));
+        if (sacIdx >= 0) {
+          const picked = lines.splice(sacIdx, 1)[0];
+          picked.brilliant = true;
+          lines.unshift(picked);
+          return lines;
+        }
+        if (lines[0]) lines[0].brilliant = true;
+        return lines;
+      }
+
+      if (lines[0]) {
+        lines[0].brilliant = true;
+      }
+      return lines;
     }
 
     prepareFlaw(fen) {
@@ -353,6 +571,12 @@
     searchPvCount(targetArrows) {
       if (this.flaw && this.flaw.type === 'mistake') return Math.max(targetArrows, 5);
       if (this.flaw && this.flaw.type === 'miss') return Math.max(targetArrows, 3);
+      if (this.brilliantDecision && this.brilliantDecision.active) {
+        const target = this.brilliantDecision.target || this.settings.brilliantTarget || 'auto';
+        if (target === 'sacrifice' || target === 'auto') return Math.max(targetArrows, 4);
+        if (target === 'line3') return Math.max(targetArrows, 3);
+        if (target === 'line2') return Math.max(targetArrows, 2);
+      }
       return targetArrows;
     }
 
@@ -405,6 +629,9 @@
       if (!request || request.searchId !== this.searchId || !this.position || this.destroyed) return;
       this.clearStage2Timer();
       const lines = Array.from(request.lines.values());
+      this.lastRequest = request;
+      this.lastLines = lines;
+      this.lastBest = best;
 
       if (request.stage === 1) {
         if (!lines.length && best && best.bestmove) {
@@ -427,6 +654,10 @@
 
     renderRequest(request, lines, best) {
       if (!this.overlay || !request || request.searchId !== this.searchId || !this.position) return;
+      this.lastRequest = request;
+      this.lastLines = lines;
+      this.lastBest = best;
+
       let sorted = CS.UCI.sortLines(lines.filter((line) => line && line.pv && line.pv.length));
 
       // Humanizer sorting: if Stockfish's Elo limiter chose a human bestmove, ensure that move is the #1 line
@@ -441,9 +672,28 @@
         }
       }
 
-      sorted = this.applyFlaw(sorted, best ? best.bestmove : null);
+      const bookTurnColor = this.position.myTurn ? this.position.turn : null;
+      const activeBookMoves = CS.openingBook ? CS.openingBook.findBookMoves(this.position.fen, bookTurnColor) : [];
+
+      if (activeBookMoves.length > 0) {
+        const bookLines = activeBookMoves.map((bm, idx) => ({
+          depth: 99,
+          multipv: idx + 1,
+          score: (sorted[0] && sorted[0].score) || { type: 'cp', value: 0 },
+          pv: [bm.uci],
+          book: true,
+          san: bm.san,
+          openingName: bm.openingName || 'Book Repertoire'
+        }));
+        sorted = bookLines;
+      } else {
+        sorted = this.applyBrilliant(sorted, this.position.fen, best ? best.bestmove : null);
+        sorted = this.applyFlaw(sorted, best ? best.bestmove : null);
+      }
+
       const scoredLine = sorted.find((line) => line && line.score);
       const flawedLine = sorted.find((line) => line && line.flaw);
+      const brilliantLine = sorted.find((line) => line && line.brilliant);
 
       const result = {
         lines: sorted,
@@ -454,7 +704,10 @@
         bestMove: best ? best.bestmove : null,
         elo: this.settings.elo,
         humanizer: this.settings.humanizer,
-        flaw: flawedLine ? flawedLine.flaw : null
+        flaw: flawedLine ? flawedLine.flaw : null,
+        brilliant: brilliantLine ? (brilliantLine.pv && brilliantLine.pv[0]) : null,
+        book: activeBookMoves.length > 0,
+        openingName: activeBookMoves.length > 0 ? activeBookMoves[0].openingName : null
       };
       const draw = () => {
         if (!this.overlay || !this.engine || this.destroyed || request.searchId !== this.searchId) return;
@@ -526,6 +779,55 @@
       if (!this.settings.enabled || this.destroyed || !this.position) return;
       this.currentFen = null;
       this.onPosition(this.position);
+    }
+
+    reRenderCurrent() {
+      if (this.lastRequest && this.lastLines && this.position && this.lastRequest.searchId === this.searchId) {
+        this.renderRequest(this.lastRequest, this.lastLines.slice(), this.lastBest);
+      } else {
+        this.restartAnalysis();
+      }
+    }
+
+    toggleOpeningBook() {
+      if (!CS.openingBook) return;
+      CS.openingBook.toggleMaster();
+      const status = CS.openingBook.enabled ? 'enabled' : 'disabled';
+      if (this.overlay) {
+        this.overlay.notify('Opening Book: ' + status);
+      }
+      this.reRenderCurrent();
+    }
+
+    cycleBrilliant() {
+      const targets = ['auto', 'best', 'sacrifice', 'line2', 'line3'];
+      const currentTarget = this.settings.brilliantTarget || 'auto';
+      const nextIndex = (targets.indexOf(currentTarget) + 1) % targets.length;
+      const nextTarget = targets[nextIndex];
+      const currentChance = Number(this.settings.brilliantChance) || 0;
+      const nextChance = currentChance === 0 ? 100 : currentChance;
+
+      this.persist({ brilliantTarget: nextTarget, brilliantChance: nextChance });
+      if (this.position) {
+        this.brilliantDecision = {
+          fen: this.position.fen,
+          active: true,
+          target: nextTarget
+        };
+        this.flaw = null;
+        this.reRenderCurrent();
+      }
+
+      const labels = {
+        auto: 'Auto (Sacrifice / Best)',
+        best: 'Best move (#1)',
+        sacrifice: 'Piece sacrifice',
+        line2: '2nd best (#2)',
+        line3: '3rd best (#3)'
+      };
+      if (this.overlay) {
+        this.overlay.notify('Brilliant: ' + (labels[nextTarget] || nextTarget) + ' (' + nextChance + '%)');
+      }
     }
 
     toggleMaster() {

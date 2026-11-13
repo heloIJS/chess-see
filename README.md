@@ -33,6 +33,8 @@ folder **that contains `manifest.json`**, not its parent.
 | Element | Purpose |
 |---|---|
 | Green arrow | Stockfish best move |
+| Cyan arrow & `!!` badge | Brilliant (Brillante) move with pulsing cyan ring |
+| Purple arrow & `📖` badge | Opening book repertoire move with opening title chip |
 | Blue dashed arrow | 2nd-best move |
 | Amber dashed arrow | 3rd-best move |
 | Pulsing circle | Destination square of the best move |
@@ -58,6 +60,8 @@ it to a bundled Stockfish build.
 | `Alt+Shift+L` | Engine strength: Full → 2800 → 2400 → 2000 → 1600 → 1200 → Full |
 | `Alt+Shift+E` | Toggle eval chip |
 | `Alt+Shift+S` | Open the on-board settings panel overlay |
+| `Alt+Shift+B` | Cycle brilliant target: Auto → Best → Sacrifice → 2nd Alt → 3rd Alt |
+| `Alt+Shift+O` | Toggle opening book repertoire on / off |
 
 The HUD is deliberately **hotkey-only** so it never intercepts normal chess input.
 
@@ -67,7 +71,7 @@ The HUD is deliberately **hotkey-only** so it never intercepts normal chess inpu
 
 1. **Stage 1** — instant depth `6`, MultiPV equal to the arrow count, runs immediately.
 2. **Stage 2** — configured depth (default `18`), same MultiPV, movetime capped by depth.
-3. When a miss is planned, MultiPV is raised to `3`; a mistake raises it to `5`.
+3. When a miss is planned, MultiPV is raised to `3`; a mistake raises it to `5`; a brilliant sacrifice or auto search raises it to `4`.
 4. The search is cancelled if FEN changes or the page is hidden.
 5. Position sourcing:
    - first from a **FEN input** on analysis pages (Lichess)
@@ -129,6 +133,35 @@ and a blunder replacement is chosen only once per position. When Humanizer
 mode is off, all chances are ignored and the HUD always shows the best move.
 
 Set them in the options page, the on-board HUD panel, or the popup.
+
+### Brilliant (Brillante) move chance and move selection
+
+You can configure the HUD to show brilliant moves (`!!`) with iconic cyan/teal arrows, `!!` badges, and pulsing cyan destination rings:
+
+| Setting | Range | Effect |
+|---|---|---|
+| **Brilliant chance** | 0–100% | Percentage chance per position to designate and display a move as brilliant (default `0%`). Works across both instant and deep search stages. |
+| **Choose brilliant move** | `Auto`, `Best (#1)`, `Piece sacrifice`, `2nd best (#2)`, `3rd best (#3)` | Chooses which move is marked as brilliant. |
+
+- **`Auto`**: Searches candidate lines for a genuine piece sacrifice; if found, promotes and marks it brilliant; otherwise selects the best engine move.
+- **`Piece sacrifice`**: Identifies tactical sacrifices (Queen, Rook, Bishop, Knight, or exchange sacrifices) that maintain an advantageous position.
+- **`Best (#1)`**: Always designates Stockfish's top engine move as brilliant.
+- **`2nd best (#2)` / `3rd best (#3)`**: Designates and promotes the 2nd or 3rd engine line as brilliant.
+- **On-board HUD selection**: Open the settings panel (`Alt+Shift+S`) to click quick buttons (`[Auto]`, `[#1 Best]`, `[Sacrifice]`, `[#2 Alt]`, `[#3 Alt]`) or pick any active candidate move with the `[Make !!]` button.
+- **Hotkey cycle**: Press `Alt+Shift+B` to cycle through the brilliant move targets on the fly.
+
+### Opening Repertoires & PGN Upload
+
+Learn and follow your favorite chess repertoires with zero-delay opening book guidance:
+
+| Feature | Details |
+|---|---|
+| **Starter Repertoires** | Pre-bundled with popular openings: **Italian Game** (White), **Sicilian Defense** (Black), and **Queen's Gambit** (White). |
+| **Custom PGN Upload & Paste** | Upload any `.pgn` file or paste PGN moves directly in the **Options page**. Supports multi-game PGNs, variations, side-lines, and transpositions. |
+| **Instant Book Priority** | Displays book moves instantly (0 ms) upon position change with purple/indigo (`#8b5cf6`) arrows, a `📖` badge, and the opening title chip (e.g. `📖 Italian Game`). Seamlessly hands off to Stockfish once out of book. |
+| **Multi-Move Branches** | Shows all candidate moves studied in your repertoire for the current position. |
+| **Color Filtering** | Repertoires can be designated for White, Black, or Both, automatically matching your side of the board. |
+| **Toggle Control** | Enable/disable easily from the Options page, Popup toggle, on-board HUD (`Alt+Shift+S`), or with hotkey `Alt+Shift+O`. |
 
 ### Humanizer style and think delay
 
@@ -194,6 +227,7 @@ src/
     hud.js
     hotkeys.js
     main.js
+    opening-book.js
     overlay.js
     shadow.css
   engine/

@@ -45,6 +45,19 @@
         <input id="blunderChance" type="range" min="0" max="100" step="5">
         <span data-out="blunderChance"></span>
       </label>
+      <label>Brilliant (Brillante) chance (plays / highlights brilliant move)
+        <input id="brilliantChance" type="range" min="0" max="100" step="5">
+        <span data-out="brilliantChance"></span>
+      </label>
+      <label>Choose brilliant move
+        <select id="brilliantTarget">
+          <option value="auto">Auto (Sacrifice when available, else #1)</option>
+          <option value="best">Best move (#1)</option>
+          <option value="sacrifice">Piece sacrifice (Material sacrifice)</option>
+          <option value="line2">2nd best move (#2)</option>
+          <option value="line3">3rd best move (#3)</option>
+        </select>
+      </label>
       <label>Humanizer style
         <select id="humanizerStyle">
           <option value="balanced">Balanced</option>
@@ -68,6 +81,37 @@
     </section>
 
     <section>
+  <h2>Opening Repertoires (Book)</h2>
+      <label><input id="openingBookEnabled" type="checkbox">Enable opening book (shows studied moves in Purple/Indigo 📖)</label>
+
+      <div class="cs-repertoire-box">
+        <h3>Upload or Add Repertoire</h3>
+        <div class="cs-upload-row">
+          <input type="text" id="newRepName" placeholder="Repertoire Name (e.g. Sicilian Najdorf for Black)" class="cs-input-text">
+          <select id="newRepColor" class="cs-select">
+            <option value="white">Play as White</option>
+            <option value="black">Play as Black</option>
+            <option value="both">Both Sides</option>
+          </select>
+        </div>
+        <div class="cs-upload-row">
+          <label class="cs-file-label">
+            <span>Choose .pgn file to upload</span>
+            <input type="file" id="pgnFileInput" accept=".pgn,.txt">
+          </label>
+        </div>
+        <div class="cs-paste-area">
+          <textarea id="pgnTextInput" placeholder="...or paste PGN moves with variations (e.g. 1. e4 c5 2. Nf3 d6 (2... e6))" rows="4"></textarea>
+        </div>
+        <div class="cs-actions-row">
+          <button type="button" id="btnAddRepertoire" class="cs-btn-primary">Add Repertoire</button>
+        </div>
+      </div>
+
+      <div class="cs-repertoire-list" id="repertoireList"></div>
+    </section>
+
+    <section>
       <h2>Board alignment</h2>
       <label>Horizontal offset
         <input id="offsetX" type="range" min="-20" max="20" step="1">
@@ -80,7 +124,7 @@
     </section>
 
     <footer>
-      <p>Hotkeys only while playing. Press <kbd>Alt+Shift+S</kbd> for the hidden chess.com panel.</p>
+      <p>Hotkeys only while playing. Press <kbd>Alt+Shift+S</kbd> for the on-board panel, <kbd>Alt+Shift+B</kbd> to cycle brilliant target, <kbd>Alt+Shift+O</kbd> to toggle opening book.</p>
     </footer>
   </main>
 
