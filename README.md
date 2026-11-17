@@ -28,6 +28,27 @@ folder **that contains `manifest.json`**, not its parent.
 
 ---
 
+## Install on Android
+
+Chrome for Android does not allow extensions. Use a Chromium-based Android browser
+that supports unpacked extensions, for example **Mises**, **Quetta**, or **Kiwi**.
+
+1. Install Mises / Quetta / Kiwi from its official site.
+2. Open the browser's extension page (usually `chrome://extensions/` or
+   browser menu → **Extensions**).
+3. Turn on **Developer mode**.
+4. Use **Load unpacked** and select the `chess-see/` folder.
+5. Open chess.com or lichess.org in that same browser.
+
+On phones, a small **⚙ button** appears at the bottom-right. Use it to open the
+Chess-See panel without a keyboard. The panel becomes a bottom sheet and the
+eval chip shrinks to fit small screens.
+
+Firefox for Android is not supported yet because this build uses Chrome's
+offscreen API for the local Stockfish engine.
+
+---
+
 ## What you get
 
 | Element | Purpose |
@@ -41,6 +62,7 @@ folder **that contains `manifest.json`**, not its parent.
 | Small chip near the board | Live evaluation |
 | Panel at top-right | Optional debug/settings |
 | Popup icon | Quick controls |
+| On-screen ⚙ button | Open settings on touch devices |
 | Options page | Full settings |
 
 The board analysis works because the extension reads the current game position from

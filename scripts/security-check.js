@@ -26,7 +26,7 @@ function walk(directory, files = []) {
     const full = path.join(directory, entry.name);
     const relative = path.relative(root, full).replace(/\\/g, '/');
     if (entry.isDirectory()) {
-      if (relative === 'node_modules' || relative.startsWith('.tmp_pkg')) continue;
+      if (relative === 'node_modules' || relative === 'nova-ai-studio' || relative.startsWith('.tmp_pkg')) continue;
       walk(full, files);
     } else {
       files.push(relative);

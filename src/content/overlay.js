@@ -101,6 +101,16 @@
       this.stageLayer = rootNode.querySelector('.cs-stages');
       this.chip = rootNode.querySelector('.cs-eval');
       this.cssLink = css;
+
+      const fab = document.createElement('button');
+      fab.type = 'button';
+      fab.className = 'cs-fab';
+      fab.textContent = '⚙';
+      fab.setAttribute('aria-label', 'Toggle Chess-See settings');
+      fab.addEventListener('click', () => this.toggleSettings());
+      rootNode.appendChild(fab);
+      this.fab = fab;
+
       css.addEventListener('error', () => {
         this.notify('HUD stylesheet failed to load');
       }, { once: true });
@@ -139,6 +149,7 @@
       this.hud = null;
       if (this.shadowHost) this.shadowHost.remove();
       this.shadowHost = this.shadow = this.svg = this.rootNode = null;
+      this.chip = this.fab = null;
     }
 
     updateSettings(settings) {

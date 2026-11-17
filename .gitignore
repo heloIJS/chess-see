@@ -1,5 +1,6 @@
 # Local test artifacts
 .tmp_pkg/
+nova-ai-studio/
 node_modules/
 dist/
 build/
